@@ -1,13 +1,16 @@
 package com.theincgi.genetic;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
 
 public class GeneBundle extends Gene implements Serializable {
-	protected HashMap<Object, Gene> genes = new HashMap<>();
+	protected LinkedHashMap<Object, Gene> genes = new LinkedHashMap<>();
 	protected FloatGene addRemoveFactor;
 	private Supplier<Gene> geneFactory;
 	private int next = 0;
@@ -23,13 +26,15 @@ public class GeneBundle extends Gene implements Serializable {
 	/**Nullable factory if no genes are to be added or removed by chance*/
 	protected GeneBundle(Random random, Supplier<Gene> geneFactory, FloatGene addRemoveFactor, int next ) {
 		super(random);
-		addRemoveFactor = new FloatGene(random, .5f, 0f, 1f);
+		this.addRemoveFactor = addRemoveFactor;
 		this.geneFactory = geneFactory;
 	}
 	
 	/**Adds an un-named gene with an integer key using the factory*/
 	public int addGene() {
-		genes.put(next, geneFactory.get());
+		Gene value = geneFactory.get();
+		if(value == null) throw new NullPointerException("Expected gene from factory, got null");
+		genes.put(next, value);
 		return next++;
 	}
 	
@@ -47,6 +52,54 @@ public class GeneBundle extends Gene implements Serializable {
 			if( e.getValue().shouldMutateNow() )
 				e.getValue().mutate();
 		}
+	}
+	
+	public float getMaxMutationChance() {
+		float max = 0;
+		for( var g : genes.values() )
+			max = Math.max(max, g.getMutationChance());
+		return max;
+	}
+	
+	public int size() {
+		return genes.size();
+	}
+	
+	/**in place mix, mutation should be called next*/
+	public void mix( List<GeneBundle> parentBundles ) {
+		float keepChance = 1 / (1+parentBundles.size());
+		HashSet<Object> combinedKeys = new HashSet<>();
+		combinedKeys.addAll(genes.keySet());
+		for(GeneBundle parentBundle : parentBundles) 
+			combinedKeys.addAll(parentBundle.genes.keySet());
+		
+		for( var k : combinedKeys ) {
+			if( random.nextFloat() <= keepChance ) {
+				var g = genes.get(k);
+				if( g instanceof GeneBundle ) {
+					ArrayList<GeneBundle> subBundles = new ArrayList<>();
+					for (GeneBundle geneBundle : parentBundles) {
+						subBundles.add( (GeneBundle) geneBundle.genes.get( k ) );
+					}
+					((GeneBundle)g).mix(subBundles);
+					continue;
+				}
+				continue;
+			}
+			var pb = parentBundles.get(random.nextInt(parentBundles.size()));
+			var g = pb.genes.get(k);
+			if( g instanceof GeneBundle ) {
+				ArrayList<GeneBundle> subBundles = new ArrayList<>();
+				for (GeneBundle geneBundle : parentBundles) {
+					subBundles.add( (GeneBundle) geneBundle.genes.get( k ) );
+				}
+				((GeneBundle)g).mix(subBundles);
+				continue;
+			}
+			GeneBundle other = parentBundles.get(random.nextInt( parentBundles.size() ));
+			genes.put( k, other.genes.get( k ) );
+		}
+		
 	}
 	
 	@Override
@@ -68,19 +121,20 @@ public class GeneBundle extends Gene implements Serializable {
 	}
 	
 	@Override
-	public HashMap<Object, Gene> getValue() {
+	public LinkedHashMap<Object, Gene> getValue() {
 		return genes;
 	}
 	
 	
 	
 	@Override
-	public Gene copy() {
-		GeneBundle copy = new GeneBundle(random, geneFactory, addRemoveFactor, next);
+	public GeneBundle copy() {
+		GeneBundle copy = new GeneBundle(random, geneFactory, addRemoveFactor.copy(), next);
 		for(var e : genes.entrySet()) {
 			copy.genes.put( e.getKey() , e.getValue().copy() );
 		}
 		
 		return copy;
 	}
+
 }

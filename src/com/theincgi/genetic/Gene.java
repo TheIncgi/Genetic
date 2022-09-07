@@ -40,14 +40,10 @@ public abstract class Gene implements Serializable {
 	public boolean shouldMutateNow() {
 		return getMutationChance() < random.nextFloat();
 	}
-	 
-//	public float getMutationStrength() {
-//		return mutationStrength;
-//	}
-//	
+	
 	/**Cause the gene to change*/
 	public void mutate() {
-		mutationChance = clamp( mutationChance + rand(), -3f, 3f );
+		mutationChance = clamp( mutationChance + rand(), -5f, 3f );
 	}
 	
 	/**copy, but with mutations*/
