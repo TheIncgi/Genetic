@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 abstract public class Entity implements Serializable {
 	GeneBundle genes;
-	int age = 0;
+	public int age = 0;
 	protected boolean rescoreEveryCycle = false;
 	protected Float score = null;
 	

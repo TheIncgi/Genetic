@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.Random;
 
 public abstract class Gene implements Serializable {
-	float mutationChance = 2;
+	protected float mutationChance = 2;
 //	float mutationStrength = 1;
 	protected final Random random;
 	
@@ -38,7 +38,7 @@ public abstract class Gene implements Serializable {
 	}
 	/**Randomly returns true depending on mutation chance*/
 	public boolean shouldMutateNow() {
-		return getMutationChance() < random.nextFloat();
+		return random.nextFloat() <= getMutationChance();
 	}
 	
 	/**Cause the gene to change*/

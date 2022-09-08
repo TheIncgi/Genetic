@@ -47,6 +47,12 @@ public class GeneBundle extends Gene implements Serializable {
 		genes.put(key, gene);
 	}
 	
+	public void removeGene() {
+		if(genes.size() == 0) return;
+		var keys = genes.keySet().toArray();
+		genes.remove( keys[ random.nextInt(keys.length) ] );
+	}
+	
 	protected void mutateChildren() {
 		for( var e : genes.entrySet() ) {
 			if( e.getValue().shouldMutateNow() )
@@ -55,7 +61,7 @@ public class GeneBundle extends Gene implements Serializable {
 	}
 	
 	public float getMaxMutationChance() {
-		float max = 0;
+		float max = addRemoveFactor.getMutationChance();
 		for( var g : genes.values() )
 			max = Math.max(max, g.getMutationChance());
 		return max;
@@ -70,8 +76,12 @@ public class GeneBundle extends Gene implements Serializable {
 		float keepChance = 1 / (1+parentBundles.size());
 		HashSet<Object> combinedKeys = new HashSet<>();
 		combinedKeys.addAll(genes.keySet());
-		for(GeneBundle parentBundle : parentBundles) 
+		for(GeneBundle parentBundle : parentBundles) { 
 			combinedKeys.addAll(parentBundle.genes.keySet());
+			next = Math.max(next, parentBundle.next);
+		}
+		
+		
 		
 		for( var k : combinedKeys ) {
 			if( random.nextFloat() <= keepChance ) {
@@ -88,6 +98,10 @@ public class GeneBundle extends Gene implements Serializable {
 			}
 			var pb = parentBundles.get(random.nextInt(parentBundles.size()));
 			var g = pb.genes.get(k);
+			if( g == null ) {
+				genes.remove(k);
+				continue;
+			}
 			if( g instanceof GeneBundle ) {
 				ArrayList<GeneBundle> subBundles = new ArrayList<>();
 				for (GeneBundle geneBundle : parentBundles) {
@@ -112,8 +126,10 @@ public class GeneBundle extends Gene implements Serializable {
 		super.mutate();
 		mutateChildren();
 		if( canMutate() && super.shouldMutateNow()) {
-			if( random.nextFloat() < addRemoveFactor.getValue() ) {
+			if( random.nextFloat() <= addRemoveFactor.getValue() ) {
 				addGene();
+			} else {
+				removeGene();
 			}
 		}
 		if(addRemoveFactor.shouldMutateNow())

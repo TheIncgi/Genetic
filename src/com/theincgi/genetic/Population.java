@@ -27,8 +27,11 @@ public class Population {
 	}
 	
 	protected void setup() {
-		while( entities.size() < maxPopulation )
-			entities.add( entityFactory.apply(random) );
+		while( entities.size() < maxPopulation ) {
+			var entity = entityFactory.apply(random);
+			entity.getGenes().mutate();
+			entities.add( entity );
+		}
 	}
 	
 	public void epoch() {
@@ -41,7 +44,7 @@ public class Population {
 	}
 	public void grow() {
 		while( entities.size() < maxPopulation ) {
-			Entity a = getRandom();
+			Entity a = getBetterRandom();
 			Entity b = getRandom();
 			entities.add( a.makeChild(List.of(b), childFactory) );
 		}
@@ -51,14 +54,16 @@ public class Population {
 			e.reset();
 	}
 	protected void live() {
-		for( Entity e : entities )
+		for( Entity e : entities ) {
 			e.live();
+			e.age++;
+		}
 	}
 	protected void sort() {
 		entities.sort((a,b)->{
 			if(a.getScore() == null) throw new NullPointerException("Entity %s gave a null score".formatted(a.toString()));
 			if(b.getScore() == null) throw new NullPointerException("Entity %s gave a null score".formatted(b.toString()));
-			return -(int) Math.signum(b.getScore() - a.getScore());
+			return (int) Math.signum(b.getScore() - a.getScore());
 		});
 	}
 	protected void reduce() {
@@ -72,6 +77,13 @@ public class Population {
 	
 	public Entity getRandom() {
 		return entities.get( random.nextInt(entities.size()) );
+	}
+	
+	public Entity getBetterRandom() {
+		float r = random.nextFloat() + random.nextFloat() + random.nextFloat();
+		r /= 3;
+		r *= entities.size();
+		return entities.get( (int) r );
 	}
 	
 	public ArrayList<Entity> getEntities() {

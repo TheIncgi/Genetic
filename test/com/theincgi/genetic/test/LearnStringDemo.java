@@ -24,23 +24,36 @@ public class LearnStringDemo {
 			500, 1000
 		);
 		
+		int done = 0;
 		do {
 			population.epoch();
-			System.out.printf("Gen %4d | %6.3f | %s\n", population.getGenerations(), population.getBest().getMaxMutationChance(), population.getBest());
-		} while( population.getBest().getMaxMutationChance() < .1 );
+			System.out.printf("Gen %4d | Score: %5.2f | Mutation: %6.3f | %s\n", population.getGenerations(), population.getBest().getScore(), population.getBest().getMaxMutationChance(), population.getBest());
+			if( population.getBest().getMaxMutationChance() <= .1 )
+				done++;
+			else
+				done = 0;
+		} while( done < 5 );
 		System.out.println();
 		System.out.println("Expected: "+LEARN_THIS);
 		System.out.println("Result:   "+population.getBest());
 	}
 	
 	public static class LetterGene extends OptionGene<Character> {
-		
+		private static final long serialVersionUID = -8001866639391690859L;
 		public static List<Character> options = new ArrayList<>();
 		static {
 			for( int i = 32; i < 127; i++ )
 				options.add((char) i);
 		}
 		
+		public LetterGene(Random random, List<Character> options, int initIndex) {
+			super(random, options, initIndex);
+		}
+
+		public LetterGene(Random random, List<Character> options) {
+			super(random, options);
+		}
+
 		public LetterGene(Random random) {
 			super(random, options);
 		}
@@ -50,10 +63,18 @@ public class LearnStringDemo {
 			return getValue().toString();
 		}
 		
+		@Override
+		public LetterGene copy() {
+			LetterGene copy = new LetterGene(random, options, 0);
+			copy.mutationChance = this.mutationChance;
+			return copy;
+		}
+		
 	}
 	
 	public static class StringEntity extends Entity {
-		
+		private static final long serialVersionUID = 9058208592191090151L;
+
 		public StringEntity(Random random) {
 			super( new GeneBundle(random, ()-> {
 				return new LetterGene(random);
@@ -65,14 +86,12 @@ public class LearnStringDemo {
 		
 		@Override
 		public void live() {
-			score = 0f; //starts as null
+			score = getMaxMutationChance(); //starts as null
 			score += -abs(LEARN_THIS.length() - getGenes().size());
-			if(score > -.5f) {//correct length
-				int i = 0;
-				for( Gene gene : getGenes().getValue().values() ) {
-					if(!(gene instanceof LetterGene)) throw new IllegalArgumentException();
-					var letterGene = (LetterGene) gene;
-					if( LEARN_THIS.charAt(i++) == letterGene.getValue() )
+			if(LEARN_THIS.length() == getGenes().size()) {//correct length
+				String self = toString();
+				for( int i = 0; i < LEARN_THIS.length(); i++ ) {
+					if( LEARN_THIS.charAt(i) == self.charAt(i) )
 						score++;
 				}
 			}
@@ -84,9 +103,11 @@ public class LearnStringDemo {
 		@Override
 		public String toString() {
 			StringBuilder b = new StringBuilder();
-			int i = 0;
 			for( Gene gene : getGenes().getValue().values() ) {
-				if(!(gene instanceof LetterGene)) throw new IllegalArgumentException();
+				if(gene == null)
+					throw new NullPointerException("Null gene");
+				if(!(gene instanceof LetterGene)) 
+					throw new IllegalArgumentException();
 				var letterGene = (LetterGene) gene;
 				b.append(letterGene.getValue());
 			}
