@@ -22,7 +22,7 @@ public class LearnStringDemo {
 		Population population = new Population(random, 
 			(rand)->{ return new StringEntity(rand); },
 			(geneBundle)->{ return new StringEntity(geneBundle); },
-			50, 10000
+			500, 1000
 		);
 		
 		int done = 0;
@@ -99,11 +99,11 @@ public class LearnStringDemo {
 				String self = toString();
 				for( int i = 0; i < LEARN_THIS.length(); i++ ) {
 					if( LEARN_THIS.charAt(i) == self.charAt(i) )
-						score++;
+						score += (float)Math.pow(LEARN_THIS.length()+1 - i,2);
 				}
 			}
-//			if(age > 2)
-			score -= age / 4f;
+			if(age > 20)
+				score -= (age-20) / 4f;
 		}
 		
 		@Override
