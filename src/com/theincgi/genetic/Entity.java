@@ -20,6 +20,10 @@ abstract public class Entity implements Serializable {
 		return genes.getMaxMutationChance();
 	}
 	
+	public float getAvgMutationChance() {
+		return genes.getAvgMutationChance();
+	}
+	
 	public Entity makeChild( List<Entity> parents, Function<GeneBundle, Entity> entityFactory ) {
 		List<GeneBundle> bundles = new ArrayList<>();
 		for (var parent : parents) {
@@ -39,10 +43,11 @@ abstract public class Entity implements Serializable {
 	public GeneBundle getGenes() {
 		return genes;
 	}
+	
 	public int getAge() {
 		return age;
 	}
 	public boolean isRescoreEveryCycle() {
-		return rescoreEveryCycle;
+		return rescoreEveryCycle; //TODO use this
 	}
 }

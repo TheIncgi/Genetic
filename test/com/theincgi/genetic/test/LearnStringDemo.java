@@ -8,6 +8,7 @@ import java.util.Random;
 
 import com.theincgi.genetic.Entity;
 import com.theincgi.genetic.Gene;
+import com.theincgi.genetic.GeneArrayBundle;
 import com.theincgi.genetic.GeneBundle;
 import com.theincgi.genetic.OptionGene;
 import com.theincgi.genetic.Population;
@@ -21,13 +22,19 @@ public class LearnStringDemo {
 		Population population = new Population(random, 
 			(rand)->{ return new StringEntity(rand); },
 			(geneBundle)->{ return new StringEntity(geneBundle); },
-			500, 1000
+			50, 10000
 		);
 		
 		int done = 0;
 		do {
 			population.epoch();
-			System.out.printf("Gen %4d | Score: %5.2f | Mutation: %6.3f | %s\n", population.getGenerations(), population.getBest().getScore(), population.getBest().getMaxMutationChance(), population.getBest());
+			System.out.printf("Gen %4d | Score: %5.2f | Mutation Max: %6.3f Avg: %6.3f | %s\n", 
+				population.getGenerations(), 
+				population.getBest().getScore(), 
+				population.getBest().getMaxMutationChance(), 
+				population.getBest().getAvgMutationChance(), 
+				population.getBest()
+			);
 			if( population.getBest().getMaxMutationChance() <= .1 )
 				done++;
 			else
@@ -76,7 +83,7 @@ public class LearnStringDemo {
 		private static final long serialVersionUID = 9058208592191090151L;
 
 		public StringEntity(Random random) {
-			super( new GeneBundle(random, ()-> {
+			super( new GeneArrayBundle(random, ()-> {
 				return new LetterGene(random);
 			}));
 		}
@@ -86,7 +93,7 @@ public class LearnStringDemo {
 		
 		@Override
 		public void live() {
-			score = getMaxMutationChance(); //starts as null
+			score = 0f;// getMaxMutationChance()/26f; //starts as null
 			score += -abs(LEARN_THIS.length() - getGenes().size());
 			if(LEARN_THIS.length() == getGenes().size()) {//correct length
 				String self = toString();
@@ -95,6 +102,8 @@ public class LearnStringDemo {
 						score++;
 				}
 			}
+//			if(age > 2)
+			score -= age / 4f;
 		}
 		
 		@Override
@@ -103,7 +112,7 @@ public class LearnStringDemo {
 		@Override
 		public String toString() {
 			StringBuilder b = new StringBuilder();
-			for( Gene gene : getGenes().getValue().values() ) {
+			for( Gene gene : getGenes().getGenesIterable() ) {
 				if(gene == null)
 					throw new NullPointerException("Null gene");
 				if(!(gene instanceof LetterGene)) 

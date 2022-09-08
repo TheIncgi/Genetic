@@ -44,7 +44,7 @@ public class Population {
 	}
 	public void grow() {
 		while( entities.size() < maxPopulation ) {
-			Entity a = getBetterRandom();
+			Entity a = getRandom();
 			Entity b = getRandom();
 			entities.add( a.makeChild(List.of(b), childFactory) );
 		}

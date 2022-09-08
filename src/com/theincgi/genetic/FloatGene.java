@@ -38,6 +38,7 @@ public class FloatGene extends Gene implements Serializable {
 	public void mutate() {
 		super.mutate();
 		value = clamp(value + rand() * mutationStrength, min, max);
+		mutationStrength += 3*rand() * mutationStrength;
 	}
 	
 	@Override

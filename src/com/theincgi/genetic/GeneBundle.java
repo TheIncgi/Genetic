@@ -5,126 +5,84 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
 
-public class GeneBundle extends Gene implements Serializable {
-	protected LinkedHashMap<Object, Gene> genes = new LinkedHashMap<>();
+public abstract class GeneBundle extends Gene implements Serializable {
+//	protected LinkedList<Gene> arrayPart = new LinkedList<>();
+//	protected LinkedHashMap<String, Gene> hashPart = new LinkedHashMap<>();
 	protected FloatGene addRemoveFactor;
-	private Supplier<Gene> geneFactory;
-	private int next = 0;
 	
 	
 	/**Nullable factory if no genes are to be added or removed by chance*/
-	public GeneBundle(Random random, Supplier<Gene> geneFactory ) {
+	public GeneBundle(Random random ) {
 		super(random);
 		addRemoveFactor = new FloatGene(random, .5f, 0f, 1f);
-		this.geneFactory = geneFactory;
 	}
 	
 	/**Nullable factory if no genes are to be added or removed by chance*/
-	protected GeneBundle(Random random, Supplier<Gene> geneFactory, FloatGene addRemoveFactor, int next ) {
+	protected GeneBundle(Random random, FloatGene addRemoveFactor ) {
 		super(random);
 		this.addRemoveFactor = addRemoveFactor;
-		this.geneFactory = geneFactory;
 	}
 	
-	/**Adds an un-named gene with an integer key using the factory*/
-	public int addGene() {
-		Gene value = geneFactory.get();
-		if(value == null) throw new NullPointerException("Expected gene from factory, got null");
-		genes.put(next, value);
-		return next++;
-	}
+	
 	
 	/**Returns true if the geneFactory was set*/
-	public boolean canMutate() {
-		return geneFactory != null;
-	}
+	abstract public boolean canMutate();
 	
-	public void addGene(Object key, Gene gene) {
-		genes.put(key, gene);
-	}
-	
-	public void removeGene() {
-		if(genes.size() == 0) return;
-		var keys = genes.keySet().toArray();
-		genes.remove( keys[ random.nextInt(keys.length) ] );
-	}
-	
-	protected void mutateChildren() {
-		for( var e : genes.entrySet() ) {
-			if( e.getValue().shouldMutateNow() )
-				e.getValue().mutate();
-		}
-	}
 	
 	public float getMaxMutationChance() {
 		float max = addRemoveFactor.getMutationChance();
-		for( var g : genes.values() )
-			max = Math.max(max, g.getMutationChance());
+		for( var g : getGenesIterable() )
+			if( g instanceof GeneBundle ) {
+				max = Math.max(max, ((GeneBundle)g).getMaxMutationChance());
+			}else {				
+				max = Math.max(max, g.getMutationChance());
+			}
 		return max;
 	}
 	
-	public int size() {
-		return genes.size();
+	protected static class Avg {float sum=0; int count=0; public void add(float v) {sum+=v;count++;}public float value() {return sum/count;}}
+	protected Avg _getAvgMutationChance() {
+		Avg avg = new Avg();
+		avg.add( addRemoveFactor.getMutationChance() );
+		for( var g : getGenesIterable() )
+			if( g instanceof GeneBundle ) {
+				avg.add( ((GeneBundle) g)._getAvgMutationChance().value() );
+			}else {				
+				avg.add( g.getMutationChance() );
+			}
+		return avg;
+		
 	}
 	
-	/**in place mix, mutation should be called next*/
-	public void mix( List<GeneBundle> parentBundles ) {
-		float keepChance = 1 / (1+parentBundles.size());
-		HashSet<Object> combinedKeys = new HashSet<>();
-		combinedKeys.addAll(genes.keySet());
-		for(GeneBundle parentBundle : parentBundles) { 
-			combinedKeys.addAll(parentBundle.genes.keySet());
-			next = Math.max(next, parentBundle.next);
-		}
-		
-		
-		
-		for( var k : combinedKeys ) {
-			if( random.nextFloat() <= keepChance ) {
-				var g = genes.get(k);
-				if( g instanceof GeneBundle ) {
-					ArrayList<GeneBundle> subBundles = new ArrayList<>();
-					for (GeneBundle geneBundle : parentBundles) {
-						subBundles.add( (GeneBundle) geneBundle.genes.get( k ) );
-					}
-					((GeneBundle)g).mix(subBundles);
-					continue;
-				}
-				continue;
-			}
-			var pb = parentBundles.get(random.nextInt(parentBundles.size()));
-			var g = pb.genes.get(k);
-			if( g == null ) {
-				genes.remove(k);
-				continue;
-			}
-			if( g instanceof GeneBundle ) {
-				ArrayList<GeneBundle> subBundles = new ArrayList<>();
-				for (GeneBundle geneBundle : parentBundles) {
-					subBundles.add( (GeneBundle) geneBundle.genes.get( k ) );
-				}
-				((GeneBundle)g).mix(subBundles);
-				continue;
-			}
-			GeneBundle other = parentBundles.get(random.nextInt( parentBundles.size() ));
-			genes.put( k, other.genes.get( k ) );
-		}
-		
+	public final float getAvgMutationChance() {
+		return _getAvgMutationChance().value();
 	}
+	
+	abstract public int size();
+	
+	/**in place mix, mutation should be called next*/
+	abstract public void mix( List<GeneBundle> parentBundles );
 	
 	@Override
 	public boolean shouldMutateNow() {
 		return true;
 	}
 	
+	abstract public Iterable<Gene> getGenesIterable();
+	abstract public void addGene();
+	abstract public void removeGene();
 	@Override
 	public void mutate() {
 		super.mutate();
-		mutateChildren();
+		for( var g : getGenesIterable() )
+			if(g.shouldMutateNow())
+				g.mutate();
+
 		if( canMutate() && super.shouldMutateNow()) {
 			if( random.nextFloat() <= addRemoveFactor.getValue() ) {
 				addGene();
@@ -137,20 +95,9 @@ public class GeneBundle extends Gene implements Serializable {
 	}
 	
 	@Override
-	public LinkedHashMap<Object, Gene> getValue() {
-		return genes;
-	}
-	
-	
+	abstract public Object getValue();
 	
 	@Override
-	public GeneBundle copy() {
-		GeneBundle copy = new GeneBundle(random, geneFactory, addRemoveFactor.copy(), next);
-		for(var e : genes.entrySet()) {
-			copy.genes.put( e.getKey() , e.getValue().copy() );
-		}
-		
-		return copy;
-	}
+	abstract public GeneBundle copy(); 
 
 }

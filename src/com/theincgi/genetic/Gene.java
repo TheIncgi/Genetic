@@ -36,6 +36,7 @@ public abstract class Gene implements Serializable {
 	public float getRawMutationChance() {
 		return mutationChance;
 	}
+	
 	/**Randomly returns true depending on mutation chance*/
 	public boolean shouldMutateNow() {
 		return random.nextFloat() <= getMutationChance();
@@ -43,7 +44,7 @@ public abstract class Gene implements Serializable {
 	
 	/**Cause the gene to change*/
 	public void mutate() {
-		mutationChance = clamp( mutationChance + rand(), -5f, 3f );
+		mutationChance = clamp( mutationChance + 2*rand(), -5f, 3f );
 	}
 	
 	/**copy, but with mutations*/
