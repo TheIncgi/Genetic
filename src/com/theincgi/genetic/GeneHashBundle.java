@@ -37,6 +37,7 @@ public class GeneHashBundle extends GeneBundle {
 	@Override
 	public void addGene() {
 		var pair = geneFactory.get();
+		if(pair == null) return;
 		genes.put(pair.name, pair.gene);		
 	}
 	@Override

@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class OptionGene<T> extends Gene implements Serializable {
 	private List<T> options;
-	private int selected;
+	protected T selected;
 	
 	public OptionGene( Random random, List<T> options ) {
 		super(random);
@@ -14,21 +14,22 @@ public class OptionGene<T> extends Gene implements Serializable {
 		mutate();
 	}
 	
-	public OptionGene( Random random, List<T> options, int initIndex ) {
+	public OptionGene( Random random, List<T> options, T initIndex ) {
 		super(random);
 		this.options = options;
+		//if !options.contains(initIndex) err
 		selected = initIndex;
 	}
 	
 	@Override
 	public T getValue() {
-		return options.get(selected);
+		return selected;
 	}
 
 	@Override
 	public void mutate() {
 		super.mutate();
-		selected = (int) (Math.random() * options.size());
+		selected = options.get(random.nextInt(options.size()));
 	}
 
 	@Override

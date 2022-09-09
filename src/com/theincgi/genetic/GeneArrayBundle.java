@@ -31,7 +31,7 @@ public class GeneArrayBundle extends GeneBundle {
 	/**Adds an un-named gene with an integer key using the factory*/
 	public void addGene() {
 		Gene value = geneFactory.get();
-		if(value == null) throw new NullPointerException("Expected gene from factory, got null");
+		if(value == null) return;
 		genes.add(value);
 	}
 	public void removeGene() {
@@ -79,7 +79,7 @@ public class GeneArrayBundle extends GeneBundle {
 				continue;
 			}
 			
-			float keepChance = 1 / (1+parentBundles.size());
+			float keepChance = 1 / (float)(1+parentBundles.size());
 			Optional<Gene> gene;
 			if( random.nextFloat() < keepChance ) {
 				gene = selfGene;

@@ -25,13 +25,17 @@ abstract public class Entity implements Serializable {
 	}
 	
 	public Entity makeChild( List<Entity> parents, Function<GeneBundle, Entity> entityFactory ) {
+		return makeChild(parents, entityFactory, true);
+	}
+	public Entity makeChild( List<Entity> parents, Function<GeneBundle, Entity> entityFactory, boolean mutate ) {
 		List<GeneBundle> bundles = new ArrayList<>();
 		for (var parent : parents) {
 			bundles.add(parent.getGenes());
 		}
 		Entity child = entityFactory.apply( genes.copy() );
 		child.genes.mix(bundles);
-		child.genes.mutate();
+		if(mutate)
+			child.genes.mutate();
 		return child;
 	}
 	
