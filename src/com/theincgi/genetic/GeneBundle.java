@@ -103,6 +103,7 @@ public abstract class GeneBundle extends Gene implements Serializable {
 	
 	@Override
 	public void updateParenting(Optional<Gene> parent) {
+		setParent( parent );
 		for( Gene g : getGenesIterable() ) 
 			g.updateParenting(Optional.of(this));
 	}
