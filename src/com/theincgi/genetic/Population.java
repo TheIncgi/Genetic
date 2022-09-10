@@ -55,7 +55,7 @@ public class Population {
 	}
 	protected void live() {
 		for( Entity e : entities ) {
-			e.live();
+			e.live( this );
 			e.age++;
 		}
 	}

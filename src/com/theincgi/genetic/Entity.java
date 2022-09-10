@@ -18,6 +18,12 @@ abstract public class Entity implements Serializable {
 		this.genes = genes;
 	}
 	
+	/**Call {@link #updateGeneParenting()} after constructing*/
+	protected Entity() {}
+	protected void setGenes(GeneBundle genes) {
+		this.genes = genes;
+	}
+	
 	public float getMaxMutationChance() {
 		return genes.getMaxMutationChance();
 	}
@@ -46,7 +52,7 @@ abstract public class Entity implements Serializable {
 		genes.updateParenting( Optional.empty() );
 	}
 	
-	abstract public void live();
+	abstract public void live( Population population );
 	abstract public void reset();
 	public Float getScore() {
 		return score;

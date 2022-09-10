@@ -72,4 +72,8 @@ public abstract class Gene implements Serializable {
 	public void updateParenting( Optional<Gene> parent ) {
 		setParent(parent);
 	}
+	
+	public Random getRandom() {
+		return random;
+	}
 }

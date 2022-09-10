@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
 
+import com.theincgi.commons.RandomUtils;
+
 public class GeneHashBundle extends GeneBundle {
 	private static final long serialVersionUID = -7009966794646999556L;
 	private final LinkedHashMap<String, Gene> genes = new LinkedHashMap<>();
@@ -42,10 +44,10 @@ public class GeneHashBundle extends GeneBundle {
 	}
 	@Override
 	public void removeGene() {
-		if (genes.size() == 0)
+		var key = RandomUtils.pickRandom(random, genes.keySet());
+		if (key == null)
 			return;
-		var keys = genes.keySet().toArray();
-		genes.remove( keys[random.nextInt(keys.length)] );
+		genes.remove( key );
 	}
 	
 	@Override
@@ -61,6 +63,14 @@ public class GeneHashBundle extends GeneBundle {
 	@Override
 	public boolean canMutate() {
 		return geneFactory != null;
+	}
+	
+	public Supplier<NamedGene> getGeneFactory() {
+		return geneFactory;
+	}
+	
+	public void setGeneFactory(Supplier<NamedGene> geneFactory) {
+		this.geneFactory = geneFactory;
 	}
 	
 	/**List of bundles to mix into this, probably just 1*/

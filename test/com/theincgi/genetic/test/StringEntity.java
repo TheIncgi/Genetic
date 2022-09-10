@@ -8,6 +8,7 @@ import com.theincgi.genetic.Entity;
 import com.theincgi.genetic.Gene;
 import com.theincgi.genetic.GeneArrayBundle;
 import com.theincgi.genetic.GeneBundle;
+import com.theincgi.genetic.Population;
 
 public class StringEntity extends Entity {
 	private static final long serialVersionUID = 9058208592191090151L;
@@ -22,7 +23,7 @@ public class StringEntity extends Entity {
 	}
 	
 	@Override
-	public void live() {
+	public void live( Population unused ) {
 		score = 0f;// getMaxMutationChance()/26f; //starts as null
 		score += -abs(LearnStringDemo.LEARN_THIS.length() - getGenes().size());
 		if(LearnStringDemo.LEARN_THIS.length() == getGenes().size()) {//correct length
