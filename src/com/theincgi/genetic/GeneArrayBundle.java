@@ -60,7 +60,7 @@ public class GeneArrayBundle extends GeneBundle {
 	}
 	
 	@Override
-	public void mix(List<GeneBundle> parentBundles) {
+	public void mix(List<? extends GeneBundle> parentBundles) {
 		int maxSize = size();
 		for( var p : parentBundles ) {
 			if(!(p instanceof GeneArrayBundle))

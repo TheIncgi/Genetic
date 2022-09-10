@@ -2,12 +2,14 @@ package com.theincgi.genetic;
 
 
 import java.io.Serializable;
+import java.util.Optional;
 import java.util.Random;
 
 public abstract class Gene implements Serializable {
 	protected float mutationChance = 2;
 //	float mutationStrength = 1;
 	protected final Random random;
+	private Gene parent;
 	
 	public Gene( Random random ) {
 		this.random = random;
@@ -56,4 +58,18 @@ public abstract class Gene implements Serializable {
 	
 	/**a perfect copy, no mutations*/
 	abstract public Gene copy();
+	
+	public Optional<Gene> getParent() {
+		return Optional.ofNullable(parent);
+	}
+	public void setParent(Gene parent) {
+		this.parent = parent;
+	}
+	public void setParent(Optional<Gene> parent) {
+		this.parent = parent.isPresent() ? parent.get() : null;
+	}
+	
+	public void updateParenting( Optional<Gene> parent ) {
+		setParent(parent);
+	}
 }

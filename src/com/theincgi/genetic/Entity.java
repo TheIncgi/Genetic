@@ -3,6 +3,7 @@ package com.theincgi.genetic;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Function;
 
@@ -12,6 +13,7 @@ abstract public class Entity implements Serializable {
 	protected boolean rescoreEveryCycle = false;
 	protected Float score = null;
 	
+	/**Call {@link #updateGeneParenting()} after constructing*/
 	public Entity( GeneBundle genes ) {
 		this.genes = genes;
 	}
@@ -33,10 +35,15 @@ abstract public class Entity implements Serializable {
 			bundles.add(parent.getGenes());
 		}
 		Entity child = entityFactory.apply( genes.copy() );
+		child.updateGeneParenting();
 		child.genes.mix(bundles);
 		if(mutate)
 			child.genes.mutate();
 		return child;
+	}
+	
+	public void updateGeneParenting() {
+		genes.updateParenting( Optional.empty() );
 	}
 	
 	abstract public void live();

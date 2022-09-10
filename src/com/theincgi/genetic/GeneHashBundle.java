@@ -64,7 +64,7 @@ public class GeneHashBundle extends GeneBundle {
 	}
 	
 	/**List of bundles to mix into this, probably just 1*/
-	public void mix(List<GeneBundle> parentBundles) {
+	public void mix(List<? extends GeneBundle> parentBundles) {
 		HashSet<String> combinedKeys = new HashSet<>();
 		combinedKeys.addAll(genes.keySet());
 		for(GeneBundle parentBundle : parentBundles) {

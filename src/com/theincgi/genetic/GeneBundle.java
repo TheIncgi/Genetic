@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -66,14 +67,14 @@ public abstract class GeneBundle extends Gene implements Serializable {
 	abstract public int size();
 	
 	/**in place mix, mutation should be called next*/
-	abstract public void mix( List<GeneBundle> parentBundles );
+	abstract public void mix( List<? extends GeneBundle> parentBundles );
 	
 	@Override
 	public boolean shouldMutateNow() {
 		return true;
 	}
 	
-	abstract public Iterable<Gene> getGenesIterable();
+	abstract public Iterable<? extends Gene> getGenesIterable();
 	abstract public void addGene();
 	abstract public void removeGene();
 	@Override
@@ -99,5 +100,11 @@ public abstract class GeneBundle extends Gene implements Serializable {
 	
 	@Override
 	abstract public GeneBundle copy(); 
+	
+	@Override
+	public void updateParenting(Optional<Gene> parent) {
+		for( Gene g : getGenesIterable() ) 
+			g.updateParenting(Optional.of(this));
+	}
 
 }
