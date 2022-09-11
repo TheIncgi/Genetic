@@ -5,7 +5,7 @@ import java.util.Random;
 
 public class FloatGene extends Gene implements Serializable {
 	private float value = 0;
-	private float mutationStrength = 1;
+	private float mutationStrength = 2;
 	private Float min = null, max = null;
 	
 	public FloatGene(Random random) {
@@ -38,7 +38,7 @@ public class FloatGene extends Gene implements Serializable {
 	public void mutate() {
 		super.mutate();
 		value = clamp(value + rand() * mutationStrength, min, max);
-		mutationStrength += 3*rand() * mutationStrength;
+		mutationStrength += .5*rand() * mutationStrength;
 	}
 	
 	@Override

@@ -3,6 +3,10 @@ package com.theincgi.genetic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class Population {
@@ -14,6 +18,11 @@ public class Population {
 	protected ArrayList<Entity> entities;
 	protected int generations = 0;
 	private Random random;
+	private int parents = 2;
+	
+	public boolean liveInParallel = false;
+	
+	protected ThreadPoolExecutor threadPool;
 	
 	public Population( Random random, Function<Random, Entity> entityFactory, Function<GeneBundle, Entity> childFactory, int minPopulation, int maxPopulation ) {
 		this.random = random;
@@ -34,6 +43,12 @@ public class Population {
 		}
 	}
 	
+	public void setNumParents( int parents ) {
+		if( parents < 1 )
+			throw new IllegalArgumentException("number of parents must be >= 1");
+		this.parents = parents;
+	}
+	
 	public void epoch() {
 		grow();
 		reset();
@@ -45,8 +60,10 @@ public class Population {
 	public void grow() {
 		while( entities.size() < maxPopulation ) {
 			Entity a = getRandom();
-			Entity b = getRandom();
-			entities.add( a.makeChild(List.of(b), childFactory) );
+			List<Entity> otherParents = new ArrayList<>( parents - 1 );
+			for( int i = 1; i<parents; i++)
+				otherParents.add( getRandom() );
+			entities.add( a.makeChild(otherParents, childFactory) );
 		}
 	}
 	protected void reset() {
@@ -54,9 +71,21 @@ public class Population {
 			e.reset();
 	}
 	protected void live() {
-		for( Entity e : entities ) {
-			e.live( this );
-			e.age++;
+		if( liveInParallel ) {
+			var tp = getThreadPool();
+			for( Entity e : entities ) {
+				tp.getQueue().add( ()->{
+					e.live(this);
+					e.age++;
+				});
+			}
+			//TODO wait for tasks to finish
+			//TODO Ensure tasks always get same random somehow...
+		}else{
+			for( Entity e : entities ) {
+				e.live( this );
+				e.age++;
+			}
 		}
 	}
 	protected void sort() {
@@ -93,4 +122,14 @@ public class Population {
 	public int getGenerations() {
 		return generations;
 	}
+	
+	protected ThreadPoolExecutor getThreadPool() {
+		if(threadPool == null) {
+			threadPool = new ThreadPoolExecutor(2, 12, 20, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+		}
+		return threadPool;
+	}
+	
+	
+	
 }

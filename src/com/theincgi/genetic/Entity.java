@@ -41,10 +41,10 @@ abstract public class Entity implements Serializable {
 			bundles.add(parent.getGenes());
 		}
 		Entity child = entityFactory.apply( genes.copy() );
-		child.updateGeneParenting();
 		child.genes.mix(bundles);
 		if(mutate)
 			child.genes.mutate();
+		child.updateGeneParenting(); //after mutate so new genes also get parenting set
 		return child;
 	}
 	

@@ -78,37 +78,37 @@ public class GeneHashBundle extends GeneBundle {
 		HashSet<String> combinedKeys = new HashSet<>();
 		combinedKeys.addAll(genes.keySet());
 		for(GeneBundle parentBundle : parentBundles) {
+			if( parentBundle == null ) 
+				continue; //no keys to contribute
 			if( !(parentBundle instanceof GeneHashBundle) )
 				throw new IllegalArgumentException("Expected GeneHashBundles, structures incompatable");
 			combinedKeys.addAll( ((GeneHashBundle)parentBundle).genes.keySet());
 		}
 		
 		for( var k : combinedKeys ) {
-			var selfGene = genes.get(k);
-			if( selfGene instanceof GeneBundle ) {
-				GeneBundle gb = (GeneBundle) selfGene;
-				ArrayList<GeneBundle> subBundles = new ArrayList<>();
-				for(var parent : parentBundles)
-					subBundles.add((GeneBundle) ((GeneHashBundle) parent).genes.get(k));
-				gb.mix( subBundles );
-				continue;
-			}
+			var selectedGeneBundle = (GeneHashBundle) RandomUtils.pickRandom(random, this, parentBundles);
 			
-			float keepChance = 1 / (1+parentBundles.size());
-			Gene gene;
-			if( random.nextFloat() < keepChance ) {
-				gene = selfGene;
-			}else{
-				var pb = (GeneHashBundle)parentBundles.get(random.nextInt(parentBundles.size()));
-				gene = pb.genes.get(k).copy();				
-			}
+			var gene = selectedGeneBundle.genes.get(k);
+			
 			
 			if( gene == null ) {
 				genes.remove(k);
 				continue;
 			}
 			
-			genes.put( k, gene );
+			if( gene instanceof GeneBundle ) {
+				GeneBundle gb = (GeneBundle) gene;
+				ArrayList<GeneBundle> subBundles = new ArrayList<>();
+				for(var parent : parentBundles)
+					if( parent == null )
+						subBundles.add(null);
+					else
+						subBundles.add((GeneBundle) ((GeneHashBundle) parent).genes.get(k));
+				gb.mix( subBundles );
+				continue;
+			}
+			
+			genes.put( k, gene.copy() );
 		}
 		
 	}
