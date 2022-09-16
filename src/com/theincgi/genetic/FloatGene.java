@@ -34,6 +34,10 @@ public class FloatGene extends Gene implements Serializable {
 		return value;
 	}
 	
+	public void setValue(float value) {
+		this.value = value;
+	}
+	
 	@Override
 	public void mutate() {
 		super.mutate();
